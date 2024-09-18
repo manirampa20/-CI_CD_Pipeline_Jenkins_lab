@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_CREDENTIALS = credentials('dockerhub-credentials') // DockerHub credentials stored in Jenkins
+        DOCKER_CREDENTIALS = credentials('dockerhub-credentials') // Use the credentials ID from Jenkins
     }
 
     stages {
@@ -16,16 +16,14 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the application...'
-                // Example: For a Maven project (adjust according to your project)
-                sh 'mvn clean package'
+                bat 'mvn clean package'  // Build the project
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Running unit tests...'
-                // Example: Run tests for Maven project
-                sh 'mvn test'
+                bat 'mvn test'
             }
         }
 
@@ -33,8 +31,8 @@ pipeline {
             steps {
                 script {
                     echo 'Building Docker image...'
-                    // Build Docker image and tag it with Jenkins build number
-                    def appImage = docker.build("your-dockerhub-username/your-app:${env.BUILD_NUMBER}")
+                    // Build Docker image and tag it with the Jenkins build number
+                    def appImage = docker.build("manirampa20/dockerdemo-app:${env.BUILD_NUMBER}")
                 }
             }
         }
@@ -43,8 +41,9 @@ pipeline {
             steps {
                 script {
                     echo 'Pushing Docker image to Docker Hub...'
+                    // Authenticate and push to Docker Hub using the credentials
                     docker.withRegistry('https://registry.hub.docker.com', DOCKER_CREDENTIALS) {
-                        appImage.push("${env.BUILD_NUMBER}") // Push image with build number tag
+                        appImage.push("${env.BUILD_NUMBER}") // Push the image with the build number tag
                         appImage.push("latest") // Optionally tag it as "latest"
                     }
                 }
