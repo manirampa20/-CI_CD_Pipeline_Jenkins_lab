@@ -2,32 +2,30 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'vg1k2/basicsofdockerlab:v1.0'
-        SPRING_PORT = '4000'
+        DOCKER_CREDENTIALS = credentials('dockerhub-credentials') // DockerHub credentials stored in Jenkins
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'master', url: 'https://github.com/virgile-am/BasicsOfDockerLab.git'
+                echo 'Cloning repository...'
+                git branch: 'main', url: 'https://github.com/manirampa20/CI_CD_Pipeline_Jenkins_lab.git'
             }
         }
 
-        stage('Build with Maven') {
+        stage('Build') {
             steps {
-                script {
-                    echo 'Building with Maven...'
-                    bat 'mvn clean package -DskipTests'
-                }
+                echo 'Building the application...'
+                // Example: For a Maven project (adjust according to your project)
+                sh 'mvn clean package'
             }
         }
 
-        stage('Run Tests') {
+        stage('Test') {
             steps {
-                script {
-                    echo 'Running tests...'
-                    bat 'mvn test'
-                }
+                echo 'Running unit tests...'
+                // Example: Run tests for Maven project
+                sh 'mvn test'
             }
         }
 
@@ -35,36 +33,19 @@ pipeline {
             steps {
                 script {
                     echo 'Building Docker image...'
-                    bat "docker build -t %DOCKER_IMAGE% ."
+                    // Build Docker image and tag it with Jenkins build number
+                    def appImage = docker.build("your-dockerhub-username/your-app:${env.BUILD_NUMBER}")
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Deploy Docker Image') {
             steps {
                 script {
-                    echo 'Pushing Docker image...'
-                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
-                        bat "docker push %DOCKER_IMAGE%"
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Server') {
-            steps {
-                script {
-                    echo 'Deploying to server...'
-                    withCredentials([sshUserPrivateKey(credentialsId: 'server-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                        bat """
-                        ssh -i %SSH_KEY% user@your-server-address "
-                        docker pull %DOCKER_IMAGE% &&
-                        docker stop basicsofdockerlab || true &&
-                        docker rm basicsofdockerlab || true &&
-                        docker run -d --name basicsofdockerlab -p %SPRING_PORT%:4000 -e SPRING_DATASOURCE_URL=jdbc:postgresql://your-render-postgres-host:5432/your-db-name -e SPRING_DATASOURCE_USERNAME=your-username -e SPRING_DATASOURCE_PASSWORD=your-password %DOCKER_IMAGE%
-                        "
-                        """
+                    echo 'Pushing Docker image to Docker Hub...'
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKER_CREDENTIALS) {
+                        appImage.push("${env.BUILD_NUMBER}") // Push image with build number tag
+                        appImage.push("latest") // Optionally tag it as "latest"
                     }
                 }
             }
@@ -73,14 +54,13 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning workspace...'
-            cleanWs()
+            echo 'Pipeline completed.'
         }
         success {
-            echo 'Pipeline succeeded! The application has been built, tested, and deployed.'
+            echo 'Pipeline succeeded.'
         }
         failure {
-            echo 'Pipeline failed. Please check the console output to fix the issue.'
+            echo 'Pipeline failed.'
         }
     }
 }
