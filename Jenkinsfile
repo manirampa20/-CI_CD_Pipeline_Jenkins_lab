@@ -2,7 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_CREDENTIALS = credentials('dockerhub-credentials') // Use the credentials ID from Jenkins
+        DOCKER_CREDENTIALS = 'dockerhub-credentials' // Use the credentials ID from Jenkins
+        DOCKER_IMAGE = ''
+        DOCKER_REGISTRY=''
+
     }
 
     stages {
