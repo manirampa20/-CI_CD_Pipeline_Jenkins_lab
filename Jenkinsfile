@@ -47,14 +47,16 @@ pipeline {
                 script {
                     try {
                         echo 'Pushing Docker image to Docker Hub...'
-                        bat '''
-                            echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR  --password-stdin
-                            docker push manirampa20/dockerdemo-app:${env.BUILD_NUMBER}
-                            docker-compose down
-                            docker-compose pull
-                            docker-compose up -d
-                            docker logout
-                        '''
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_CREDENTIALS_USR', passwordVariable: 'DOCKER_CREDENTIALS_PSW')]) {
+                            bat '''
+                                echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin
+                                docker push manirampa20/dockerdemo-app:${env.BUILD_NUMBER}
+                                docker-compose down
+                                docker-compose pull
+                                docker-compose up -d
+                                docker logout
+                            '''
+                        }
                         echo 'Deployment completed successfully'
                     } catch (Exception e) {
                         error "Deployment failed: ${e.message}"
