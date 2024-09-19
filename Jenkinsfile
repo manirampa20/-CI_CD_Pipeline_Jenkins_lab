@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS = 'dockerhub-credentials' // Use the credentials ID from Jenkins
-        DOCKER_IMAGE = ''
-        DOCKER_REGISTRY=''
+        DOCKER_IMAGE = 'dockerdemo'
+        DOCKER_REGISTRY='docker.io'
 
     }
 
