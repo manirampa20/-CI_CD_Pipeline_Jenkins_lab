@@ -31,8 +31,13 @@ pipeline {
             steps {
                 script {
                     echo 'Building Docker image...'
-                    // Build Docker image and tag it with the Jenkins build number
-                    docker.build("manirampa20/dockerdemo-app:${env.BUILD_NUMBER}")
+                    try {
+                        // Build Docker image and tag it with the Jenkins build number
+                        bat 'docker build -t manirampa20/dockerdemo-app:${env.BUILD_NUMBER} .'
+                        echo 'Docker Image Built successfully'
+                    } catch (Exception e) {
+                        error "Failed to build Docker Image: ${e.message}"
+                    }
                 }
             }
         }
