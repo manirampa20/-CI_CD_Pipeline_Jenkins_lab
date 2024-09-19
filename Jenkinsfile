@@ -32,23 +32,27 @@ pipeline {
                 script {
                     echo 'Building Docker image...'
                     // Build Docker image and tag it with the Jenkins build number
-                    def appImage = docker.build("manirampa20/dockerdemo-app:${env.BUILD_NUMBER}")
+                    docker.build("manirampa20/dockerdemo-app:${env.BUILD_NUMBER}")
                 }
             }
         }
 
-        stage('Deploy Docker Image') {
+        stage('Deploy with Docker Compose') {
             steps {
                 script {
-                    echo 'Pushing Docker image to Docker Hub...'
                     try {
-                    // Authenticate and push to Docker Hub using the credentials
-                        docker.withRegistry('https://registry.hub.docker.com', DOCKER_CREDENTIALS) {
-                            appImage.push("${env.BUILD_NUMBER}") // Push the image with the build number tag
-                            appImage.push("latest") // Optionally tag it as "latest"
-                            } catch (Exception e) {
-                            error "Deployment Failed: ${e.message}"
-                        }
+                        echo 'Pushing Docker image to Docker Hub...'
+                        bat '''
+                            echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR  --password-stdin
+                            docker push manirampa20/dockerdemo-app:${env.BUILD_NUMBER}
+                            docker-compose down
+                            docker-compose pull
+                            docker-compose up -d
+                            docker logout
+                        '''
+                        echo 'Deployment completed successfully'
+                    } catch (Exception e) {
+                        error "Deployment failed: ${e.message}"
                     }
                 }
             }
