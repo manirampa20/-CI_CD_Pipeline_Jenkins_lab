@@ -33,7 +33,7 @@ pipeline {
                     echo 'Building Docker image...'
                     try {
                         // Build Docker image and tag it with the Jenkins build number
-                        bat 'docker build -t manirampa20/dockerdemo-app:%env.BUILD_NUMBER% .'
+                        bat 'docker build -t manirampa20/dockerdemo-app:latest .'
                         echo 'Docker Image Built successfully'
                     } catch (Exception e) {
                         error "Failed to build Docker Image: ${e.message}"
@@ -50,7 +50,7 @@ pipeline {
                         withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_CREDENTIALS_USR', passwordVariable: 'DOCKER_CREDENTIALS_PSW')]) {
                             bat '''
                                 echo %DOCKER_CREDENTIALS_PSW | docker login -u %DOCKER_CREDENTIALS_USR --password-stdin
-                                docker push manirampa20/dockerdemo-app:%env.BUILD_NUMBER%
+                                docker push manirampa20/dockerdemo-app:latest
                                 docker-compose down
                                 docker-compose pull
                                 docker-compose up -d
