@@ -50,7 +50,7 @@ pipeline {
                 script {
                     try {
                         echo 'Pushing Docker image to Docker Hub...'
-                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_CREDENTIALS_USR', passwordVariable: 'DOCKER_CREDENTIALS_PSW')]) {
+                        withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'DOCKER_CREDENTIALS_USR', passwordVariable: 'DOCKER_CREDENTIALS_PSW')]) {
                             bat '''
                                 echo %DOCKER_CREDENTIALS_PSW | docker login -u %DOCKER_CREDENTIALS_USR --password-stdin
                                 docker push manirampa20/dockerdemo-app:latest
