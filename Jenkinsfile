@@ -41,10 +41,14 @@ pipeline {
             steps {
                 script {
                     echo 'Pushing Docker image to Docker Hub...'
+                    try {
                     // Authenticate and push to Docker Hub using the credentials
-                    docker.withRegistry('https://registry.hub.docker.com', DOCKER_CREDENTIALS) {
-                        appImage.push("${env.BUILD_NUMBER}") // Push the image with the build number tag
-                        appImage.push("latest") // Optionally tag it as "latest"
+                        docker.withRegistry('https://registry.hub.docker.com', DOCKER_CREDENTIALS) {
+                            appImage.push("${env.BUILD_NUMBER}") // Push the image with the build number tag
+                            appImage.push("latest") // Optionally tag it as "latest"
+                            } catch (Exception e) {
+                            error "Deployment Failed: ${e.message}"
+                        }
                     }
                 }
             }
