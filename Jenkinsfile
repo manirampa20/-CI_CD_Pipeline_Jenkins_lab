@@ -52,12 +52,9 @@ pipeline {
                         echo 'Pushing Docker image to Docker Hub...'
                         withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'DOCKER_CREDENTIALS_USR', passwordVariable: 'DOCKER_CREDENTIALS_PSW')]) {
                             bat '''
-                                echo %DOCKER_CREDENTIALS_PSW | docker login -u %DOCKER_CREDENTIALS_USR --password-stdin
-                                docker push manirampa20/dockerdemo-app:latest
-                                docker-compose down
-                                docker-compose pull
-                                docker-compose up -d
-                                docker logout
+                               docker login -u %DOCKER_CREDENTIALS_USR% -p %DOCKER_CREDENTIALS_PSW%
+                               docker tag manirampa20/dockerdemo-app:latest manirampa20/dockerdemo-app:latest
+                               docker push manirampa20/dockerdemo-app:latest
                             '''
                         }
                         echo 'Deployment completed successfully'
